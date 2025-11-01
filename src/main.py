@@ -14,7 +14,7 @@ import logging
 
 from src.approval_auditor import ApprovalAuditor
 from src.chain_config import CHAIN_CONFIG
-from src.x402_middleware import X402Middleware
+from src.x402_middleware_dual import X402Middleware
 
 # Configure logging
 logging.basicConfig(
@@ -51,7 +51,10 @@ app.add_middleware(
     X402Middleware,
     payment_address=payment_address,
     base_url=base_url,
-    facilitator_url="https://facilitator.daydreams.systems",
+    facilitator_urls=[
+        "https://facilitator.daydreams.systems",
+        "https://api.cdp.coinbase.com/platform/v2/x402/facilitator"
+    ],
     free_mode=free_mode,
 )
 
@@ -673,7 +676,12 @@ async def entrypoint_audit_get():
 
 
 # AP2 Entrypoint - POST for actual requests
-@app.post("/entrypoints/approval-risk-auditor/invoke")
+@app.post(
+    "/entrypoints/approval-risk-auditor/invoke",
+    summary="Token Approval Risk Auditor",
+    description="Scan wallet for risky ERC-20/NFT approvals and generate revoke transactions. Identifies unlimited approvals, stale permissions, and suspicious spenders across 7+ chains with ready-to-broadcast revocation calls.",
+    response_description="Approval risks with revoke transaction data"
+)
 async def entrypoint_audit_post(request: Optional[AuditRequest] = None, x_payment_txhash: Optional[str] = None):
     """
     AP2 (Agent Payments Protocol) compatible entrypoint
