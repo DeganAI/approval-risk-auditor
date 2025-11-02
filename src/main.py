@@ -663,13 +663,36 @@ async def entrypoint_audit_get():
             "accepts": [{
                 "scheme": "exact",
                 "network": "base",
-                "maxAmountRequired": "50000",
+                "maxAmountRequired": "50000",  # 0.05 USDC (6 decimals)
                 "resource": f"{base_url}/entrypoints/approval-risk-auditor/invoke",
                 "description": "Approval Risk Auditor - Flag unlimited or stale token approvals",
                 "mimeType": "application/json",
                 "payTo": payment_address,
                 "maxTimeoutSeconds": 30,
-                "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",  # USDC on Base
+                "outputSchema": {
+                    "input": {
+                        "type": "http",
+                        "method": "POST",
+                        "bodyType": "json",
+                        "bodyFields": {
+                            "wallet": {
+                                "type": "string",
+                                "required": True,
+                                "description": "Wallet address to audit"
+                            },
+                            "chains": {
+                                "type": "array",
+                                "required": True,
+                                "description": "List of chain IDs to scan (e.g., [1, 137, 42161])"
+                            }
+                        }
+                    },
+                    "output": {
+                        "type": "object",
+                        "description": "Approval risk audit results with flagged tokens and revoke transactions"
+                    }
+                }
             }]
         }
     )
